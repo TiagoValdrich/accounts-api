@@ -8,6 +8,7 @@ type DatabaseConfig struct {
 	Password string `env:"DB_PASSWORD,required"`
 	Name     string `env:"DB_NAME,required"`
 	SSLMode  string `env:"DB_SSLMODE" envDefault:"disable"`
+	Debug    bool   `env:"DB_DEBUG" envDefault:"false"`
 }
 
 func (d *DatabaseConfig) DSN() string {

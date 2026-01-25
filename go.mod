@@ -12,10 +12,12 @@ require (
 	github.com/uptrace/bun v1.2.16
 	github.com/uptrace/bun/dialect/pgdialect v1.2.16
 	github.com/uptrace/bun/driver/pgdriver v1.2.16
+	github.com/uptrace/bun/extra/bundebug v1.2.16
 )
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
