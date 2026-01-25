@@ -12,10 +12,24 @@ type AccountCreatedResponse struct {
 	CreatedAt time.Time  `json:"created_at"`
 }
 
-func toAccountCreatedResponse(customerAccountResult CustomerAccountResult) AccountCreatedResponse {
+type SearchCustomerAccountByIDResponse struct {
+	ID        *uuid.UUID `json:"id"`
+	Document  string     `json:"document"`
+	CreatedAt time.Time  `json:"created_at"`
+}
+
+func DomainToAccountCreatedResponse(customerAccountResult CustomerAccountResult) AccountCreatedResponse {
 	return AccountCreatedResponse{
 		ID:        customerAccountResult.CustomerAccount.ID,
 		Document:  customerAccountResult.Customer.Document,
 		CreatedAt: customerAccountResult.Customer.CreatedAt,
+	}
+}
+
+func DomainToSearchAccountByIDResponse(searchCustomerAccountResult SearchCustomerAccountResult) SearchCustomerAccountByIDResponse {
+	return SearchCustomerAccountByIDResponse{
+		ID:        searchCustomerAccountResult.CustomerID,
+		Document:  searchCustomerAccountResult.Document,
+		CreatedAt: searchCustomerAccountResult.CreatedAt,
 	}
 }

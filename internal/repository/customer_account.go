@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
-	"github.com/rs/zerolog/log"
+	"github.com/gofrs/uuid/v5"
 	"github.com/tiagovaldrich/accounts-api/internal/models"
 	"github.com/uptrace/bun"
 )
@@ -14,6 +16,9 @@ type CustomerAccountRepository interface {
 		ctx context.Context,
 		customerAccount models.CustomerAccount,
 	) (*models.CustomerAccount, error)
+	SearchCustomerAccountByID(
+		ctx context.Context, customerAccountID *uuid.UUID,
+	) (*CustomerAccountByIDResult, error)
 }
 
 type customerAccountRepository struct {
@@ -37,12 +42,34 @@ func (r *customerAccountRepository) CreateCustomerAccount(
 		Exec(ctx)
 
 	if err != nil {
-		log.Err(err).
-			Str("customer_id", customerAccount.ID.String()).
-			Msg("failed to create customer account")
-
 		return nil, err
 	}
 
 	return &customerAccount, err
+}
+
+func (r *customerAccountRepository) SearchCustomerAccountByID(
+	ctx context.Context, customerAccountID *uuid.UUID,
+) (*CustomerAccountByIDResult, error) {
+	var result CustomerAccountByIDResult
+
+	err := r.GetDB(ctx).
+		NewSelect().
+		Model(&result).
+		ColumnExpr("c.document AS document").
+		ColumnExpr("ca.id AS id").
+		ColumnExpr("ca.created_at AS created_at").
+		TableExpr("customer_account ca").
+		Join("JOIN customer c ON c.id = ca.customer_id").
+		Where("ca.id = ?", customerAccountID).
+		Scan(ctx, &result)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &result, nil
 }
