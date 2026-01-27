@@ -12,8 +12,8 @@ type Balance struct {
 	bun.BaseModel `bun:"table:balance"`
 
 	ID                *uuid.UUID `bun:"id,pk"`
-	CustomerAccountID *uuid.UUID `bun:"account_id"`
-	Amount            int64      `bun:"amount"`
+	CustomerAccountID *uuid.UUID `bun:"customer_account_id"`
+	Balance           int64      `bun:"balance"`
 	CreatedAt         time.Time  `bun:"created_at"`
 	UpdatedAt         time.Time  `bun:"updated_at"`
 }

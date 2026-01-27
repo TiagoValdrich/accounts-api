@@ -11,8 +11,8 @@ import (
 type OperationType string
 
 const (
-	NormalPurcharse           OperationType = "normal_purcharse"
-	PurcharseWithInstallments OperationType = "purcharse_with_installments"
+	NormalPurcharse           OperationType = "normal_purchase"
+	PurcharseWithInstallments OperationType = "installment_purchase"
 	Withdrawal                OperationType = "withdrawal"
 	CreditVoucher             OperationType = "credit_voucher"
 )
@@ -23,7 +23,7 @@ type Transaction struct {
 	CustomerAccountID *uuid.UUID    `bun:"customer_account_id"`
 	OperationType     OperationType `bun:"operation_type"`
 	Amount            int64         `bun:"amount"`
-	IdempotencyKey    string        `bun:"idempotency_key"`
+	IdempotencyKey    *string       `bun:"idempotency_key"`
 	CreatedAt         time.Time     `bun:"created_at"`
 	UpdatedAt         time.Time     `bun:"updated_at"`
 }

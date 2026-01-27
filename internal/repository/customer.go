@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
 	"github.com/tiagovaldrich/accounts-api/internal/models"
 	"github.com/uptrace/bun"
 )
@@ -29,12 +28,6 @@ func (r *customerRepository) CreateCustomer(ctx context.Context, customer models
 		NewInsert().
 		Model(&customer).
 		Exec(ctx)
-
-	if err != nil {
-		log.Err(err).Msg("failed to create customer")
-
-		return nil, err
-	}
 
 	return &customer, err
 }

@@ -7,11 +7,6 @@ CREATE TYPE transaction_operation_type AS ENUM (
     'credit_voucher'
 );
 
-CREATE TYPE transaction_status AS ENUM (
-    'success',
-    'error'
-);
-
 CREATE TABLE customer (
     id UUID PRIMARY KEY,
     document VARCHAR(255) NOT NULL,
@@ -20,7 +15,6 @@ CREATE TABLE customer (
 
     CONSTRAINT customer_document_unique UNIQUE (document)
 );
-
 
 CREATE TABLE customer_account (
     id UUID PRIMARY KEY,
@@ -48,7 +42,6 @@ CREATE TABLE transactions (
     customer_account_id UUID NOT NULL,
     operation_type transaction_operation_type NOT NULL,
     amount BIGINT NOT NULL,
-    status transaction_status NOT NULL,
     idempotency_key VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -63,4 +56,3 @@ DROP TABLE balance;
 DROP TABLE customer_account;
 DROP TABLE customer;
 DROP TYPE transaction_operation_type;
-DROP TYPE transaction_status;

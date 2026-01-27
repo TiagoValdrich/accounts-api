@@ -41,10 +41,6 @@ func (r *customerAccountRepository) CreateCustomerAccount(
 		Model(&customerAccount).
 		Exec(ctx)
 
-	if err != nil {
-		return nil, err
-	}
-
 	return &customerAccount, err
 }
 
