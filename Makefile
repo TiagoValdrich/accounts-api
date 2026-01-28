@@ -7,7 +7,7 @@ install:
 	go mod vendor
 
 integration-test:
-	go test ./test/integration/...
+	gotestsum --format pkgname ./test/integration/...
 
 run:
 	set -a && \
@@ -20,3 +20,14 @@ lint:
 
 build:
 	go build -o accounts-api cmd/main.go
+
+build-docker:
+	docker build -t tiagovaldrich/accounts-api .
+
+run-docker:
+	docker run -p 8889:8889 \
+		-e DB_HOST=host.docker.internal:5432 \
+		-e DB_USER=postgres \
+		-e DB_PASSWORD=postgres \
+		-e DB_NAME=accounts_api \
+		tiagovaldrich/accounts-api

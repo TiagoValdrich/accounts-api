@@ -1,15 +1,43 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: accounts-api
+    ports:
+      - "8889:8889"
+    environment:
+      DB_HOST: accounts-api-db:5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: accounts_api
+      DB_SSLMODE: disable
+      DB_DEBUG: "true"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
   postgres:
     image: postgres:18-alpine
-    container_name: transaction-manager-db
+    container_name: accounts-api-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: transaction_manager
+      POSTGRES_DB: accounts_api
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: accounts-api-docs
+    ports:
+      - "8081:8080"
+    environment:
+      SWAGGER_JSON: /docs/openapi.yaml
+    volumes:
+      - ./docs:/docs:ro
 
 volumes:
   postgres_data:

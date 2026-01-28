@@ -7,8 +7,10 @@ import (
 	"github.com/uptrace/bun"
 )
 
+type ContextKey string
+
 const (
-	TxKey string = "database_tx"
+	TxKey ContextKey = "database_tx"
 )
 
 type Base interface {

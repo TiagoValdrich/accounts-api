@@ -13,6 +13,7 @@ func main() {
 	appRouter := config.NewRouter()
 
 	database := db.NewDatabase(&cfg.EnvVars.Database)
+	//nolint: errcheck
 	defer database.Close()
 
 	db.RunMigrations(database, nil)
@@ -28,5 +29,6 @@ func main() {
 	accounts.NewHTTPHandler(appRouter.GetApp(), accountsService)
 	transactions.NewHTTPHandler(appRouter.GetApp(), transactionsService)
 
+	//nolint: errcheck
 	appRouter.Start()
 }
