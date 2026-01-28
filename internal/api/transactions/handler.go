@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/cerror"
+	"github.com/tiagovaldrich/accounts-api/internal/pkg/validator"
 )
 
 type httpHandler struct {
@@ -29,6 +30,13 @@ func (h *httpHandler) createTransaction(c *fiber.Ctx) error {
 			Status:  http.StatusBadRequest,
 			Message: "Invalid transaction payload",
 		})
+	}
+
+	if err := validator.ValidateStruct(createTransactionReq); err != nil {
+		return cerror.New(cerror.Params{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid payload",
+		}, err.FieldErrors...)
 	}
 
 	createTransactionResult, err := h.service.CreateTransaction(c.Context(), createTransactionReq)

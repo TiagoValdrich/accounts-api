@@ -1,13 +1,13 @@
 package accounts
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofrs/uuid/v5"
 	"github.com/rs/zerolog/log"
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/cerror"
+	"github.com/tiagovaldrich/accounts-api/internal/pkg/validator"
 )
 
 type httpHandler struct {
@@ -34,6 +34,13 @@ func (h *httpHandler) createAccount(c *fiber.Ctx) error {
 		})
 	}
 
+	if err := validator.ValidateStruct(body); err != nil {
+		return cerror.New(cerror.Params{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid payload",
+		}, err.FieldErrors...)
+	}
+
 	createAccountResult, err := h.service.CreateAccount(c.Context(), body)
 	if err != nil {
 		log.Err(err).Msg("failed to create account")
@@ -54,11 +61,13 @@ func (h *httpHandler) searchCustomerBankAccountByID(c *fiber.Ctx) error {
 			Message: "Invalid account id",
 		})
 	}
-	fmt.Println("customerAccountIdParsed: ", customerAccountIdParsed)
 
 	customerAccountResult, err := h.service.SearchCustomerAccountByID(c.Context(), searchAccountRequest{
 		CustomerAccountID: &customerAccountIdParsed,
 	})
+	if err != nil {
+		return err
+	}
 
 	return c.Status(http.StatusOK).JSON(DomainToSearchAccountByIDResponse(customerAccountResult))
 }
