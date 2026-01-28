@@ -15,7 +15,7 @@ func main() {
 	database := db.NewDatabase(&cfg.EnvVars.Database)
 	defer database.Close()
 
-	db.RunMigrations(database)
+	db.RunMigrations(database, nil)
 
 	customerRepository := repository.NewCustomerRepository(database)
 	customerAccountRepository := repository.NewCustomerAccountRepository(database)

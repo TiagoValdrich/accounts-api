@@ -6,8 +6,8 @@ install:
 	go mod tidy && \
 	go mod vendor
 
-test:
-	go test ./...
+integration-test:
+	go test ./test/integration/...
 
 run:
 	set -a && \
@@ -19,4 +19,4 @@ lint:
 	golangci-lint run
 
 build:
-	go build -o transaction-manager cmd/main.go
+	go build -o accounts-api cmd/main.go

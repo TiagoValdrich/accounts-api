@@ -7,7 +7,8 @@ import (
 )
 
 type AppConfig struct {
-	EnvVars EnvironmentVariables
+	EnvVars   EnvironmentVariables
+	AppRouter AppRouter
 }
 
 type EnvironmentVariables struct {
