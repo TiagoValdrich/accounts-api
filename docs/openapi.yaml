@@ -1,0 +1,382 @@
+openapi: 3.0.3
+info:
+  title: Accounts API
+  description: |
+    API for managing customer accounts and transactions.
+    
+    This API provides endpoints for:
+    - Creating and retrieving customer accounts
+    - Processing financial transactions (purchases, withdrawals, credit vouchers)
+    - Balance management with idempotency support
+    
+    ## Money Handling
+    All monetary amounts in requests and responses are represented as decimal numbers (e.g., `100.50`).
+    Internally, amounts are stored as integers in cents to avoid floating-point precision issues.
+    
+    ## Document Validation
+    The API validates Brazilian documents (CPF and CNPJ) when creating accounts.
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8889
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Accounts
+    description: Customer account management
+  - name: Transactions
+    description: Financial transaction operations
+
+paths:
+  /status:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns the health status of the API
+      operationId: getStatus
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ok
+
+  /accounts:
+    post:
+      tags:
+        - Accounts
+      summary: Create a new account
+      description: |
+        Creates a new customer account with the provided document number.
+        The document must be a valid Brazilian CPF or CNPJ.
+        New accounts are created with an initial balance of 0.
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '200':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAccountResponse'
+        '400':
+          description: Bad request - Invalid payload or document
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    status: 400
+                    message: Invalid payload
+                    field_errors:
+                      - field: document_number
+                        message: document_number is required
+                invalidDocument:
+                  summary: Invalid document
+                  value:
+                    status: 400
+                    message: Invalid document
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /accounts/{customerAccountId}:
+    get:
+      tags:
+        - Accounts
+      summary: Get account by ID
+      description: Retrieves customer account information by its unique identifier
+      operationId: getAccountById
+      parameters:
+        - name: customerAccountId
+          in: path
+          required: true
+          description: The unique identifier of the customer account (UUID v6)
+          schema:
+            type: string
+            format: uuid
+            example: 01912345-6789-6abc-def0-123456789abc
+      responses:
+        '200':
+          description: Account retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAccountResponse'
+        '400':
+          description: Invalid account ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: 400
+                message: Invalid account id
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: 404
+                message: Customer account not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /transactions:
+    post:
+      tags:
+        - Transactions
+      summary: Create a new transaction
+      description: |
+        Creates a new financial transaction and updates the account balance accordingly.
+        
+        ## Operation Types
+        - **normal_purchase**: Regular purchase (debit operation)
+        - **installment_purchase**: Purchase with installments (debit operation)
+        - **withdrawal**: Cash withdrawal (debit operation)
+        - **credit_voucher**: Credit voucher (credit operation)
+        
+        ## Balance Rules
+        - Debit operations (purchase, withdrawal) subtract from the balance
+        - Credit operations (credit_voucher) add to the balance
+        - Debit operations require sufficient funds (balance >= amount)
+        
+        ## Idempotency
+        If an `idempotency_key` is provided and a transaction with the same key already exists,
+        the API returns a 409 Conflict response to prevent duplicate transactions.
+      operationId: createTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '200':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTransactionResponse'
+        '400':
+          description: Bad request - Invalid payload or insufficient funds
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validationError:
+                  summary: Validation error
+                  value:
+                    status: 400
+                    message: Invalid payload
+                    field_errors:
+                      - field: amount
+                        message: amount must be greater than 0
+                insufficientFunds:
+                  summary: Insufficient funds
+                  value:
+                    status: 400
+                    message: Insufficient funds to perform operation
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: 404
+                message: Customer account not found
+        '409':
+          description: Conflict - Transaction with idempotency key already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: 409
+                message: Transaction is already created with that idempotency key
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CreateAccountRequest:
+      type: object
+      required:
+        - document_number
+      properties:
+        document_number:
+          type: string
+          description: Brazilian document number (CPF or CNPJ)
+          example: "12345678901"
+
+    CreateAccountResponse:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          description: The unique identifier of the created account
+          example: 01912345-6789-6abc-def0-123456789abc
+        document_number:
+          type: string
+          description: The document number associated with the account
+          example: "12345678901"
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the account was created
+          example: "2026-01-27T10:00:00Z"
+
+    GetAccountResponse:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          description: The unique identifier of the account
+          example: 01912345-6789-6abc-def0-123456789abc
+        document_number:
+          type: string
+          description: The document number associated with the account
+          example: "12345678901"
+
+    CreateTransactionRequest:
+      type: object
+      required:
+        - account_id
+        - operation_type
+        - amount
+      properties:
+        account_id:
+          type: string
+          format: uuid
+          description: The account ID to perform the transaction on
+          example: 01912345-6789-6abc-def0-123456789abc
+        operation_type:
+          type: string
+          enum:
+            - normal_purchase
+            - installment_purchase
+            - withdrawal
+            - credit_voucher
+          description: |
+            The type of operation to perform:
+            - `normal_purchase`: Regular purchase (debit)
+            - `installment_purchase`: Purchase with installments (debit)
+            - `withdrawal`: Cash withdrawal (debit)
+            - `credit_voucher`: Credit voucher (credit)
+          example: normal_purchase
+        amount:
+          type: number
+          format: double
+          minimum: 0
+          exclusiveMinimum: true
+          description: The transaction amount (must be greater than 0)
+          example: 100.50
+        idempotency_key:
+          type: string
+          description: Optional key to prevent duplicate transactions
+          example: unique-transaction-key-123
+
+    CreateTransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the created transaction
+          example: 01912345-6789-6abc-def0-123456789abc
+        customer_account_id:
+          type: string
+          format: uuid
+          description: The account ID associated with the transaction
+          example: 01912345-6789-6abc-def0-123456789abc
+        operation_type:
+          type: string
+          enum:
+            - normal_purchase
+            - installment_purchase
+            - withdrawal
+            - credit_voucher
+          description: The type of operation performed
+          example: normal_purchase
+        amount:
+          type: number
+          format: double
+          description: The transaction amount in decimal format
+          example: 100.50
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: Invalid account id
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          type: string
+          description: Error message
+          example: Invalid payload
+        field_errors:
+          type: array
+          description: List of field-specific validation errors
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: The name of the field with the error
+          example: document_number
+        message:
+          type: string
+          description: The validation error message
+          example: document_number is required
