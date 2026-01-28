@@ -89,7 +89,14 @@ func (s *service) findCustomerAccount(ctx context.Context, customerAccountID *uu
 			Msg("failed to find customer account")
 
 		return nil, cerror.New(cerror.Params{
-			Status:  http.StatusBadRequest,
+			Status:  http.StatusNotFound,
+			Message: "Customer account not found",
+		})
+	}
+
+	if customerAccount == nil {
+		return nil, cerror.New(cerror.Params{
+			Status:  http.StatusNotFound,
 			Message: "Customer account not found",
 		})
 	}
