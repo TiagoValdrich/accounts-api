@@ -19,7 +19,7 @@ func negativeAmount(amount int64) int64 {
 func ApplyMoneyDirection(amount int64, operation models.OperationType) (int64, error) {
 	formatterMap := map[models.OperationType]func(amount int64) int64{
 		models.CreditVoucher:             positiveAmount,
-		models.NormalPurcharse:           negativeAmount,
+		models.NormalPurchase:            negativeAmount,
 		models.PurcharseWithInstallments: negativeAmount,
 		models.Withdrawal:                negativeAmount,
 	}

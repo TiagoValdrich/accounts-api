@@ -11,7 +11,7 @@ import (
 type OperationType string
 
 const (
-	NormalPurcharse           OperationType = "normal_purchase"
+	NormalPurchase            OperationType = "normal_purchase"
 	PurcharseWithInstallments OperationType = "installment_purchase"
 	Withdrawal                OperationType = "withdrawal"
 	CreditVoucher             OperationType = "credit_voucher"
