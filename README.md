@@ -19,9 +19,7 @@ Meanwhile, the Customer entity is responsible for managing the customer informat
 
 For the transactions table, I decided to use the Operation Type as a enum to avoid having to store the operation type in the transaction table, as it's easier and simple to manage the operation types in the codebase (and avoid more JOIN operations).
 
-The balance table was a bonus feature, since we're dealing with transactions/money I thought it would be a good idea to have a balance table to keep track of the balance of the customer account under the hood.
-
-The idempotency key on the transactions table was also a bonus feature, since we're dealing with transactions/money I thought it would be a good idea to have a idempotency key to prevent duplicate transactions. As it was not mandatory, I let it as an optional field.
+The idempotency key on the transactions table is a bonus feature, since we're dealing with transactions/money I thought it would be a good idea to have a idempotency key to prevent duplicate transactions. As it was not mandatory, I let it as an optional field.
 
 ### Project structure
 
@@ -53,15 +51,15 @@ The idempotency key on the transactions table was also a bonus feature, since we
 
 I tried to follow the Go convention for the project structure, and also implement a kind of hexagonal architecture, with the API layer, the domain layer and the data access layer.
 
-Each package is a module for handling a specific responsibility, for example the accounts package is responsible for handling customer accounts related operations.
+Each package is a module for handling a specific domain/responsibility, for example the accounts package is responsible for handling customer accounts related operations.
 
 Inside each module, you'll find the following files:
 
 - `handler.go`: Responsible for handling the HTTP requests, initial payload validation/parsing, responses and transformation from the domain layer to the API layer.
 - `service.go`: Responsible for handling the business logic.
 - `domain.go`: Responsible for defining the domain entities, to not expose the database models straight to the API layer.
-- `request.go`: Responsible for defining the request payloads for the API layer.
-- `response.go`: Responsible for defining the response payloads for the API layer.
+- `request.go`: Responsible for defining the request payloads for the API layer. In other words the inputs of our application.
+- `response.go`: Responsible for defining the response payloads for the API layer. In other words the outputs of our application.
 
 Besides that, I separated the models and repositories into different packages, since they are usually used in multiple modules, and it's easier to avoid circular dependencies.
 
@@ -129,7 +127,6 @@ The pipeline is configured to run on every push to the main branch, and on every
 
 - Today the API layer is a little bit coupled to the domain layer, since the request is being passed straight to the domain layer, ideally if we would like to make things very decoupled and "loyal" to the hexagonal or some onion architecture, we would need to create a kind of adapter layer to handle the request and response transformations, and create much more boilerplate code, that wouldn't be worth it for this small project.
 - Also, I created a package to handle errors in a more structured way, using a "common error" pattern. Today it adds http behaviors to the domain layer, that is not so aproppriate, but it's a good way to start handling errors with a more structured approach.
-- As I added the balance table, I also had to implement a lock strategy to avoid race conditions when updating the balance, using the `FOR UPDATE` clause in the SQL query.
 - The tests organization today are a little bit messy, would be nice to better organize them in the future and make things more modular and easier to maintain.
 - And thinking about deploying this application to a production environment, we would need to add some things like:
   - Authentication: since today everyone can create an account and make transactions, we would need to add some kind of authentication to the API.
