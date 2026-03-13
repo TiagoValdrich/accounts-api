@@ -119,7 +119,7 @@ func connectToTestDatabase() *bun.DB {
 
 func getTestConfig() testDBConfig {
 	return testDBConfig{
-		host:      getEnvOrDefault("TEST_DB_HOST", "localhost:5433"),
+		host:      getEnvOrDefault("TEST_DB_HOST", "localhost:5432"),
 		user:      getEnvOrDefault("TEST_DB_USER", "postgres"),
 		password:  getEnvOrDefault("TEST_DB_PASSWORD", "postgres"),
 		dbName:    getEnvOrDefault("TEST_DB_NAME", "accounts_api_test"),
