@@ -127,7 +127,6 @@ The pipeline is configured to run on every push to the main branch, and on every
 
 - Today the API layer is a little bit coupled to the domain layer, since the request is being passed straight to the domain layer, ideally if we would like to make things very decoupled and "loyal" to the hexagonal or some onion architecture, we would need to create a kind of adapter layer to handle the request and response transformations, and create much more boilerplate code, that wouldn't be worth it for this small project.
 - Also, I created a package to handle errors in a more structured way, using a "common error" pattern. Today it adds http behaviors to the domain layer, that is not so aproppriate, but it's a good way to start handling errors with a more structured approach.
-- The tests organization today are a little bit messy, would be nice to better organize them in the future and make things more modular and easier to maintain.
 - And thinking about deploying this application to a production environment, we would need to add some things like:
   - Authentication: since today everyone can create an account and make transactions, we would need to add some kind of authentication to the API.
   - Monitoring: we could use prometheus to send stats about the API, like requests per second, error rates, etc. And use Grafana to visualize the metrics.
