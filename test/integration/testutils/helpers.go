@@ -1,4 +1,4 @@
-package integration
+package testutils
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +16,7 @@ const (
 	TestDocument string = "41184478007"
 )
 
-func POST(t *testing.T, path string, body any) (*http.Response, []byte) {
+func POST(t *testing.T, app *fiber.App, path string, body any) (*http.Response, []byte) {
 	t.Helper()
 
 	jsonBody, err := json.Marshal(body)
@@ -24,7 +25,7 @@ func POST(t *testing.T, path string, body any) (*http.Response, []byte) {
 	req := httptest.NewRequest("POST", path, bytes.NewReader(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := App.Test(req, -1)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	respBody, err := io.ReadAll(resp.Body)
@@ -34,12 +35,12 @@ func POST(t *testing.T, path string, body any) (*http.Response, []byte) {
 	return resp, respBody
 }
 
-func GET(t *testing.T, path string) (*http.Response, []byte) {
+func GET(t *testing.T, app *fiber.App, path string) (*http.Response, []byte) {
 	t.Helper()
 
 	req := httptest.NewRequest("GET", path, nil)
 
-	resp, err := App.Test(req, -1)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	respBody, err := io.ReadAll(resp.Body)

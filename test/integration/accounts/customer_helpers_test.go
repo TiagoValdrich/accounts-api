@@ -1,4 +1,4 @@
-package integration
+package accounts
 
 import (
 	"context"
@@ -14,7 +14,7 @@ func AssertCustomerExists(t *testing.T, document string) models.Customer {
 	t.Helper()
 
 	var customer models.Customer
-	err := DB.NewSelect().
+	err := testSuite.DB.NewSelect().
 		Model(&customer).
 		Where("document = ?", document).
 		Scan(context.Background())
@@ -30,7 +30,7 @@ func AssertCustomerAccountExists(t *testing.T, customerID uuid.UUID) models.Cust
 	t.Helper()
 
 	var account models.CustomerAccount
-	err := DB.NewSelect().
+	err := testSuite.DB.NewSelect().
 		Model(&account).
 		Where("customer_id = ?", customerID).
 		Scan(context.Background())
@@ -45,7 +45,7 @@ func AssertCustomerAccountExistsByID(t *testing.T, accountID string) models.Cust
 	t.Helper()
 
 	var account models.CustomerAccount
-	err := DB.NewSelect().
+	err := testSuite.DB.NewSelect().
 		Model(&account).
 		Where("id = ?", accountID).
 		Scan(context.Background())

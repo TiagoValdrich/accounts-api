@@ -1,4 +1,4 @@
-package integration
+package transactions
 
 import (
 	"context"
@@ -8,16 +8,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tiagovaldrich/accounts-api/internal/models"
+	"github.com/tiagovaldrich/accounts-api/test/integration/testutils"
 )
 
 func createTestAccount(t *testing.T, document string) string {
 	t.Helper()
 
-	resp, body := POST(t, "/accounts", map[string]any{"document_number": document})
+	resp, body := testutils.POST(t, testSuite.App, "/accounts", map[string]any{"document_number": document})
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var response map[string]any
-	ParseJSON(t, body, &response)
+	testutils.ParseJSON(t, body, &response)
 
 	return response["account_id"].(string)
 }
@@ -26,7 +27,7 @@ func AssertTransactionExists(t *testing.T, accountID string, operationType model
 	t.Helper()
 
 	var transaction models.Transaction
-	err := DB.NewSelect().
+	err := testSuite.DB.NewSelect().
 		Model(&transaction).
 		Where("customer_account_id = ?", accountID).
 		Where("operation_type = ?", operationType).
@@ -43,7 +44,7 @@ func AssertTransactionExistsWithIdempotencyKey(t *testing.T, idempotencyKey stri
 	t.Helper()
 
 	var transaction models.Transaction
-	err := DB.NewSelect().
+	err := testSuite.DB.NewSelect().
 		Model(&transaction).
 		Where("idempotency_key = ?", idempotencyKey).
 		Scan(context.Background())
@@ -57,7 +58,7 @@ func AssertTransactionExistsWithIdempotencyKey(t *testing.T, idempotencyKey stri
 func CountTransactionsWithIdempotencyKey(t *testing.T, idempotencyKey string) int {
 	t.Helper()
 
-	count, err := DB.NewSelect().
+	count, err := testSuite.DB.NewSelect().
 		Model((*models.Transaction)(nil)).
 		Where("idempotency_key = ?", idempotencyKey).
 		Count(context.Background())
@@ -69,7 +70,7 @@ func CountTransactionsWithIdempotencyKey(t *testing.T, idempotencyKey string) in
 func CountTransactionsForAccount(t *testing.T, accountID string) int {
 	t.Helper()
 
-	count, err := DB.NewSelect().
+	count, err := testSuite.DB.NewSelect().
 		Model((*models.Transaction)(nil)).
 		Where("customer_account_id = ?", accountID).
 		Count(context.Background())

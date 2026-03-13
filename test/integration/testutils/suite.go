@@ -1,4 +1,4 @@
-package integration
+package testutils
 
 import (
 	"database/sql"
@@ -18,6 +18,8 @@ import (
 	"github.com/uptrace/bun/extra/bundebug"
 )
 
+var migrationsFolder = "../../../db/migrations"
+
 type testDBConfig struct {
 	host      string
 	user      string
@@ -27,29 +29,38 @@ type testDBConfig struct {
 	debugMode bool
 }
 
-var (
-	App              *fiber.App
-	DB               *bun.DB
-	migrationsFolder string = "../../db/migrations"
-)
-
-func TestMain(m *testing.M) {
-	setup()
-	code := m.Run()
-	teardown()
-	os.Exit(code)
+type TestSuite struct {
+	App *fiber.App
+	DB  *bun.DB
 }
 
-func setup() {
+func Setup() *TestSuite {
 	createTestDatabaseIfNotExists()
-	DB = connectToTestDatabase()
-	db.RunMigrations(DB, &migrationsFolder)
-	App = setupApp(DB)
+	bunDB := connectToTestDatabase()
+	db.RunMigrations(bunDB, &migrationsFolder)
+	app := setupApp(bunDB)
+
+	return &TestSuite{
+		App: app,
+		DB:  bunDB,
+	}
 }
 
-func teardown() {
-	if DB != nil {
-		DB.Close()
+func Teardown(testSuite *TestSuite) {
+	if testSuite.DB != nil {
+		testSuite.DB.Close()
+	}
+}
+
+func CleanupTables(t *testing.T, testSuite *TestSuite) {
+	t.Helper()
+
+	tables := []string{"transactions", "customer_account", "customer"}
+	for _, table := range tables {
+		_, err := testSuite.DB.Exec(fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table))
+		if err != nil {
+			t.Fatalf("failed to truncate table %s: %v", table, err)
+		}
 	}
 }
 
@@ -108,7 +119,7 @@ func connectToTestDatabase() *bun.DB {
 
 func getTestConfig() testDBConfig {
 	return testDBConfig{
-		host:      getEnvOrDefault("TEST_DB_HOST", "localhost:5432"),
+		host:      getEnvOrDefault("TEST_DB_HOST", "localhost:5433"),
 		user:      getEnvOrDefault("TEST_DB_USER", "postgres"),
 		password:  getEnvOrDefault("TEST_DB_PASSWORD", "postgres"),
 		dbName:    getEnvOrDefault("TEST_DB_NAME", "accounts_api_test"),
@@ -136,30 +147,16 @@ func setupApp(bunDB *bun.DB) *fiber.App {
 
 	customerRepository := repository.NewCustomerRepository(bunDB)
 	customerAccountRepository := repository.NewCustomerAccountRepository(bunDB)
-	balanceRepository := repository.NewBalanceRepository(bunDB)
 	transactionRepository := repository.NewTransactionRepository(bunDB)
 
-	accountsService := accounts.NewService(customerRepository, customerAccountRepository, balanceRepository)
+	accountsService := accounts.NewService(customerRepository, customerAccountRepository)
 	accounts.NewHTTPHandler(router.GetApp(), accountsService)
 
 	transactionsService := transactions.NewService(
 		transactionRepository,
 		customerAccountRepository,
-		balanceRepository,
 	)
 	transactions.NewHTTPHandler(router.GetApp(), transactionsService)
 
 	return router.GetApp()
-}
-
-func CleanupTables(t *testing.T) {
-	t.Helper()
-
-	tables := []string{"transactions", "balance", "customer_account", "customer"}
-	for _, table := range tables {
-		_, err := DB.Exec(fmt.Sprintf("TRUNCATE TABLE %s CASCADE", table))
-		if err != nil {
-			t.Fatalf("failed to truncate table %s: %v", table, err)
-		}
-	}
 }
