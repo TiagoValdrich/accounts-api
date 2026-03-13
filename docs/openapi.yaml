@@ -7,7 +7,6 @@ info:
     This API provides endpoints for:
     - Creating and retrieving customer accounts
     - Processing financial transactions (purchases, withdrawals, credit vouchers)
-    - Balance management with idempotency support
     
     ## Money Handling
     All monetary amounts in requests and responses are represented as decimal numbers (e.g., `100.50`).
@@ -56,7 +55,6 @@ paths:
       description: |
         Creates a new customer account with the provided document number.
         The document must be a valid Brazilian CPF or CNPJ.
-        New accounts are created with an initial balance of 0.
       operationId: createAccount
       requestBody:
         required: true
@@ -154,18 +152,13 @@ paths:
         - Transactions
       summary: Create a new transaction
       description: |
-        Creates a new financial transaction and updates the account balance accordingly.
+        Creates a new financial transaction.
         
         ## Operation Types
         - **normal_purchase**: Regular purchase (debit operation)
         - **installment_purchase**: Purchase with installments (debit operation)
         - **withdrawal**: Cash withdrawal (debit operation)
         - **credit_voucher**: Credit voucher (credit operation)
-        
-        ## Balance Rules
-        - Debit operations (purchase, withdrawal) subtract from the balance
-        - Credit operations (credit_voucher) add to the balance
-        - Debit operations require sufficient funds (balance >= amount)
         
         ## Idempotency
         If an `idempotency_key` is provided and a transaction with the same key already exists,

@@ -20,11 +20,10 @@ func main() {
 
 	customerRepository := repository.NewCustomerRepository(database)
 	customerAccountRepository := repository.NewCustomerAccountRepository(database)
-	balanceRepository := repository.NewBalanceRepository(database)
 	transactionRepository := repository.NewTransactionRepository(database)
 
-	accountsService := accounts.NewService(customerRepository, customerAccountRepository, balanceRepository)
-	transactionsService := transactions.NewService(transactionRepository, customerAccountRepository, balanceRepository)
+	accountsService := accounts.NewService(customerRepository, customerAccountRepository)
+	transactionsService := transactions.NewService(transactionRepository, customerAccountRepository)
 
 	accounts.NewHTTPHandler(appRouter.GetApp(), accountsService)
 	transactions.NewHTTPHandler(appRouter.GetApp(), transactionsService)

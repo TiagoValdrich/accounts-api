@@ -20,18 +20,15 @@ type Servicer interface {
 type service struct {
 	customerRepository        repository.CustomerRepository
 	customerAccountRepository repository.CustomerAccountRepository
-	balanceRepository         repository.BalanceRepository
 }
 
 func NewService(
 	customerRepository repository.CustomerRepository,
 	customerAccountRepository repository.CustomerAccountRepository,
-	balanceRepository repository.BalanceRepository,
 ) Servicer {
 	return &service{
 		customerRepository:        customerRepository,
 		customerAccountRepository: customerAccountRepository,
-		balanceRepository:         balanceRepository,
 	}
 }
 
@@ -62,18 +59,6 @@ func (s *service) CreateAccount(ctx context.Context, accountReq createAccountReq
 			log.Err(err).
 				Str("customer_id", customer.ID.String()).
 				Msg("failed to create customer account")
-
-			return err
-		}
-
-		_, err = s.balanceRepository.CreateCustomerBalance(txCtx, models.Balance{
-			CustomerAccountID: customerAccount.ID,
-			Balance:           0,
-		})
-		if err != nil {
-			log.Err(err).
-				Str("customer_account_id", customerAccount.ID.String()).
-				Msg("failed to create customer account balance")
 
 			return err
 		}

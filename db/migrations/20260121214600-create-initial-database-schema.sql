@@ -27,16 +27,6 @@ CREATE TABLE customer_account (
 
 CREATE INDEX idx_customer_account_customer_id ON customer_account(customer_id);
 
-CREATE TABLE balance (
-    id UUID PRIMARY KEY,
-    customer_account_id UUID NOT NULL,
-    balance BIGINT NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    CONSTRAINT balance_customer_account_id_fk FOREIGN KEY (customer_account_id) REFERENCES customer_account(id)
-);
-
 CREATE TABLE transactions (
     id UUID PRIMARY KEY,
     customer_account_id UUID NOT NULL,
@@ -52,7 +42,6 @@ CREATE TABLE transactions (
 
 -- +migrate Down
 DROP TABLE transactions;
-DROP TABLE balance;
 DROP TABLE customer_account;
 DROP TABLE customer;
 DROP TYPE transaction_operation_type;
