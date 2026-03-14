@@ -56,9 +56,9 @@ jobs:
 
       - name: Run integration tests
         env:
-          DB_HOST: localhost:5432
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: accounts_api
-          DB_SSLMODE: disable
-        run: make integration-test
+          TEST_DB_HOST: localhost:5432
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
+          TEST_DB_NAME: accounts_api
+          TEST_DB_SSLMODE: disable
+        run: make ci-tests

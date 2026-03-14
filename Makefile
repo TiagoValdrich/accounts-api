@@ -1,3 +1,8 @@
+define load_env
+	set -a && \
+	source .env && \
+	set +a
+endef
 
 install:
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0 && \
@@ -6,14 +11,14 @@ install:
 	go mod tidy && \
 	go mod vendor
 
-integration-test:
+ci-tests:
 	gotestsum --format pkgname ./test/integration/...
 
+integration-test:
+	$(load_env) && gotestsum --format pkgname ./test/integration/...
+
 run:
-	set -a && \
-	source .env && \
-	set +a && \
-	go run cmd/main.go
+	$(load_env) && go run cmd/main.go
 
 lint:
 	golangci-lint run

@@ -2,11 +2,14 @@ package testutils
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofrs/uuid/v5"
 	"github.com/tiagovaldrich/accounts-api/db"
 	"github.com/tiagovaldrich/accounts-api/internal/api/accounts"
 	"github.com/tiagovaldrich/accounts-api/internal/api/transactions"
@@ -18,15 +21,20 @@ import (
 	"github.com/uptrace/bun/extra/bundebug"
 )
 
+const (
+	databaseDoesNotExistsErrorCode = "3D000"
+)
+
 var migrationsFolder = "../../../db/migrations"
 
 type testDBConfig struct {
-	host      string
-	user      string
-	password  string
-	dbName    string
-	sslMode   string
-	debugMode bool
+	host       string
+	user       string
+	password   string
+	dbName     string
+	testDbName string
+	sslMode    string
+	debugMode  bool
 }
 
 type TestSuite struct {
@@ -35,8 +43,8 @@ type TestSuite struct {
 }
 
 func Setup() *TestSuite {
-	createTestDatabaseIfNotExists()
-	bunDB := connectToTestDatabase()
+	dbCfg := createTestDatabaseIfNotExists()
+	bunDB := connectToTestDatabase(dbCfg)
 	db.RunMigrations(bunDB, &migrationsFolder)
 	app := setupApp(bunDB)
 
@@ -64,41 +72,41 @@ func CleanupTables(t *testing.T, testSuite *TestSuite) {
 	}
 }
 
-func createTestDatabaseIfNotExists() {
+func createTestDatabaseIfNotExists() testDBConfig {
 	cfg := getTestConfig()
+	dbDsn := buildDatabaseConnectionString(cfg, false)
 
-	adminDSN := fmt.Sprintf(
-		"postgres://%s:%s@%s/postgres?sslmode=%s",
-		cfg.user, cfg.password, cfg.host, cfg.sslMode,
-	)
-
-	adminDB := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(adminDSN)))
+	adminDB := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dbDsn)))
 	defer adminDB.Close()
 
 	var exists bool
 	err := adminDB.QueryRow(
 		"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = $1)",
-		cfg.dbName,
+		cfg.testDbName,
 	).Scan(&exists)
+
 	if err != nil {
-		panic(fmt.Sprintf("failed to check if test database exists: %v", err))
+		var pgErr pgdriver.Error
+		if errors.As(err, &pgErr); pgErr.Field('C') != databaseDoesNotExistsErrorCode {
+			panic(fmt.Sprintf("unexpected error when checking database existence %v", err))
+		}
 	}
 
 	if !exists {
-		_, err = adminDB.Exec(fmt.Sprintf("CREATE DATABASE %s", cfg.dbName))
+		_, err = adminDB.Exec(fmt.Sprintf("CREATE DATABASE %s", cfg.testDbName))
+
 		if err != nil {
 			panic(fmt.Sprintf("failed to create test database: %v", err))
 		}
+
 		fmt.Printf("Created test database: %s\n", cfg.dbName)
 	}
+
+	return cfg
 }
 
-func connectToTestDatabase() *bun.DB {
-	cfg := getTestConfig()
-	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s/%s?sslmode=%s",
-		cfg.user, cfg.password, cfg.host, cfg.dbName, cfg.sslMode,
-	)
+func connectToTestDatabase(dbCfg testDBConfig) *bun.DB {
+	dsn := buildDatabaseConnectionString(dbCfg, true)
 
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 	if err := sqldb.Ping(); err != nil {
@@ -107,7 +115,7 @@ func connectToTestDatabase() *bun.DB {
 
 	bunDB := bun.NewDB(sqldb, pgdialect.New())
 
-	if cfg.debugMode {
+	if dbCfg.debugMode {
 		bunDB.AddQueryHook(bundebug.NewQueryHook(
 			bundebug.WithVerbose(true),
 			bundebug.WithEnabled(true),
@@ -117,14 +125,40 @@ func connectToTestDatabase() *bun.DB {
 	return bunDB
 }
 
+func buildDatabaseConnectionString(dbCfg testDBConfig, useTestDB bool) string {
+	databaseName := dbCfg.dbName
+	if useTestDB {
+		databaseName = dbCfg.testDbName
+	}
+
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s/%s?sslmode=%s",
+		dbCfg.user, dbCfg.password, dbCfg.host, databaseName, dbCfg.sslMode,
+	)
+}
+
+func getRandomizedDatabaseName() string {
+	databaseID, err := uuid.NewV6()
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate database db name ID: %v", err))
+	}
+
+	sanitizedID := strings.ReplaceAll(databaseID.String(), "-", "")
+
+	return "accounts_api_test" + "_" + sanitizedID
+}
+
 func getTestConfig() testDBConfig {
+	testDatabaseName := getRandomizedDatabaseName()
+
 	return testDBConfig{
-		host:      getEnvOrDefault("TEST_DB_HOST", "localhost:5432"),
-		user:      getEnvOrDefault("TEST_DB_USER", "postgres"),
-		password:  getEnvOrDefault("TEST_DB_PASSWORD", "postgres"),
-		dbName:    getEnvOrDefault("TEST_DB_NAME", "accounts_api_test"),
-		sslMode:   getEnvOrDefault("TEST_DB_SSLMODE", "disable"),
-		debugMode: getEnvOrDefaultBool("TEST_DB_DEBUG", false),
+		host:       getEnvOrDefault("TEST_DB_HOST", "localhost:5432"),
+		user:       getEnvOrDefault("TEST_DB_USER", "postgres"),
+		password:   getEnvOrDefault("TEST_DB_PASSWORD", "postgres"),
+		dbName:     getEnvOrDefault("TEST_DB_NAME", "postgres"),
+		testDbName: testDatabaseName,
+		sslMode:    getEnvOrDefault("TEST_DB_SSLMODE", "disable"),
+		debugMode:  getEnvOrDefaultBool("TEST_DB_DEBUG", false),
 	}
 }
 
