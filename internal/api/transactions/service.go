@@ -164,7 +164,3 @@ func (s *service) createTransaction(
 
 	return transaction, nil
 }
-
-func (s *service) isCreditOperation(operation models.OperationType) bool {
-	return operation == models.CreditVoucher
-}

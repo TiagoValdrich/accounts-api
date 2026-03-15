@@ -56,7 +56,10 @@ func Setup() *TestSuite {
 
 func Teardown(testSuite *TestSuite) {
 	if testSuite.DB != nil {
-		testSuite.DB.Close()
+		if err := testSuite.DB.Close(); err != nil {
+			panic(err)
+		}
+
 	}
 }
 
@@ -77,7 +80,11 @@ func createTestDatabaseIfNotExists() testDBConfig {
 	dbDsn := buildDatabaseConnectionString(cfg, false)
 
 	adminDB := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dbDsn)))
-	defer adminDB.Close()
+	defer func() {
+		if err := adminDB.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	var exists bool
 	err := adminDB.QueryRow(

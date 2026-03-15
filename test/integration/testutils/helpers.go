@@ -30,7 +30,8 @@ func POST(t *testing.T, app *fiber.App, path string, body any) (*http.Response, 
 
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
-	resp.Body.Close()
+	err = resp.Body.Close()
+	require.NoError(t, err)
 
 	return resp, respBody
 }
@@ -45,7 +46,8 @@ func GET(t *testing.T, app *fiber.App, path string) (*http.Response, []byte) {
 
 	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
-	resp.Body.Close()
+	err = resp.Body.Close()
+	require.NoError(t, err)
 
 	return resp, respBody
 }
