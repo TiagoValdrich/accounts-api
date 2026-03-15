@@ -13,7 +13,7 @@ import (
 )
 
 type Servicer interface {
-	CreateTransaction(context.Context, createTransactionRequest) (CreateTransactionResult, error)
+	CreateTransaction(context.Context, CreateTransactionRequest) (CreateTransactionResult, error)
 }
 
 type service struct {
@@ -31,7 +31,7 @@ func NewService(
 	}
 }
 
-func (s *service) CreateTransaction(ctx context.Context, request createTransactionRequest) (CreateTransactionResult, error) {
+func (s *service) CreateTransaction(ctx context.Context, request CreateTransactionRequest) (CreateTransactionResult, error) {
 	if err := s.validateIdempotency(ctx, request); err != nil {
 		return CreateTransactionResult{}, err
 	}
@@ -54,7 +54,7 @@ func (s *service) CreateTransaction(ctx context.Context, request createTransacti
 	}, nil
 }
 
-func (s *service) validateIdempotency(ctx context.Context, request createTransactionRequest) error {
+func (s *service) validateIdempotency(ctx context.Context, request CreateTransactionRequest) error {
 	if request.IdempotencyKey == nil || *request.IdempotencyKey == "" {
 		return nil
 	}
@@ -104,7 +104,7 @@ func (s *service) findCustomerAccount(ctx context.Context, customerAccountID *uu
 func (s *service) processTransaction(
 	ctx context.Context,
 	customerAccount *repository.CustomerAccountByIDResult,
-	request createTransactionRequest,
+	request CreateTransactionRequest,
 ) (*models.Transaction, error) {
 	var transactionCreated *models.Transaction
 
@@ -129,7 +129,7 @@ func (s *service) processTransaction(
 	return transactionCreated, nil
 }
 
-func (s *service) calculateTransactionAmount(request createTransactionRequest) (int64, error) {
+func (s *service) calculateTransactionAmount(request CreateTransactionRequest) (int64, error) {
 	amountCents := utils.ToCents(request.Amount)
 
 	amountWithDirection, err := utils.ApplyMoneyDirection(amountCents, request.OperationType)
@@ -143,7 +143,7 @@ func (s *service) calculateTransactionAmount(request createTransactionRequest) (
 func (s *service) createTransaction(
 	ctx context.Context,
 	customerAccount *repository.CustomerAccountByIDResult,
-	request createTransactionRequest,
+	request CreateTransactionRequest,
 	amountCents int64,
 ) (*models.Transaction, error) {
 	transaction, err := s.transactionRepository.CreateTransaction(ctx, models.Transaction{

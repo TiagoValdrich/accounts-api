@@ -23,23 +23,23 @@ func NewHTTPHandler(app *fiber.App, service Servicer) {
 }
 
 func (h *httpHandler) createTransaction(c *fiber.Ctx) error {
-	var createTransactionReq createTransactionRequest
+	var reqBody CreateTransactionRequest
 
-	if err := c.BodyParser(&createTransactionReq); err != nil {
+	if err := c.BodyParser(&reqBody); err != nil {
 		return cerror.New(cerror.Params{
 			Status:  http.StatusBadRequest,
 			Message: "Invalid transaction payload",
 		})
 	}
 
-	if err := validator.ValidateStruct(createTransactionReq); err != nil {
+	if err := validator.ValidateStruct(reqBody); err != nil {
 		return cerror.New(cerror.Params{
 			Status:  http.StatusBadRequest,
 			Message: "Invalid payload",
 		}, err.FieldErrors...)
 	}
 
-	createTransactionResult, err := h.service.CreateTransaction(c.Context(), createTransactionReq)
+	createTransactionResult, err := h.service.CreateTransaction(c.Context(), reqBody)
 	if err != nil {
 		log.Err(err).Msg("failed to create transaction")
 

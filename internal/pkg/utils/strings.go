@@ -9,3 +9,7 @@ func SafeStringPointerValue(stringPointer *string) string {
 
 	return *stringPointer
 }
+
+func GetStringPointer(str string) *string {
+	return &str
+}

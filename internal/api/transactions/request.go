@@ -5,7 +5,7 @@ import (
 	"github.com/tiagovaldrich/accounts-api/internal/models"
 )
 
-type createTransactionRequest struct {
+type CreateTransactionRequest struct {
 	CustomerAccountID *uuid.UUID           `json:"account_id" validate:"required"`
 	OperationType     models.OperationType `json:"operation_type" validate:"required,oneof=normal_purchase installment_purchase withdrawal credit_voucher"`
 	Amount            float64              `json:"amount" validate:"required,gt=0"`
