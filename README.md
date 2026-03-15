@@ -107,15 +107,25 @@ make run
 
 ## Testing
 
-I decided to not write any unit tests for this project, since most of it's business logic is binded to the database layer, and the API layer, and we would be mocking good parts of the codebase behavior.
+Running unit tests:
 
-Taking that into account, I wrote some integration tests to cover the main use cases of the API. You can run them by running:
+```bash
+make unit-test
+```
+
+Running the integration tests:
 
 ```bash
 make integration-test
 ```
 
-> 🚨 Just be aware that you need to have the database container running to run the tests.
+Running all tests:
+
+```bash
+make test
+```
+
+> 🚨 Just be aware that you need to have the database container running to run the integration tests.
 
 ## CI/CD
 
@@ -125,7 +135,7 @@ The pipeline is configured to run on every push to the main branch, and on every
 
 ## Notes, next steps and considerations
 
-- Today the API layer is a little bit coupled to the domain layer, since the request is being passed straight to the domain layer, ideally if we would like to make things very decoupled and "loyal" to the hexagonal or some onion architecture, we would need to create a kind of adapter layer to handle the request and response transformations, and create much more boilerplate code, that wouldn't be worth it for this small project.
+- Today the both the API and database layers are a bit coupled to the domain layer, since the request and results from database are being passed straight to the domain layer. Ideally, if we would like to make things more decoupled and "loyal" to the hexagonal or some onion architecture, we would need to create an adapter layer to handle the the translation between the request and response for the API and for the database adapt the domain data to database layer and vice-versa, this would create much more boilerplate code, that wouldn't be worth it for this small project at first.
 - Also, I created a package to handle errors in a more structured way, using a "common error" pattern. Today it adds http behaviors to the domain layer, that is not so aproppriate, but it's a good way to start handling errors with a more structured approach.
 - And thinking about deploying this application to a production environment, we would need to add some things like:
   - Authentication: since today everyone can create an account and make transactions, we would need to add some kind of authentication to the API.

@@ -14,9 +14,9 @@ install:
 ci-tests:
 	gotestsum --format pkgname ./...
 
-tests: unit integration-test
+tests: unit-test integration-test
 
-unit:
+unit-test:
 	gotestsum --format pkgname ./internal/...
 
 integration-test:
