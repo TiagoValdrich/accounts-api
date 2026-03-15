@@ -54,7 +54,7 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@v1.13.0
 
-      - name: Run integration tests
+      - name: Run tests
         env:
           TEST_DB_HOST: localhost:5432
           TEST_DB_USER: postgres

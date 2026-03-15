@@ -2,6 +2,7 @@ package accounts_test
 
 import (
 	"context"
+	"net/http"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/tiagovaldrich/accounts-api/internal/api/accounts"
 	"github.com/tiagovaldrich/accounts-api/internal/models"
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/cerror"
+	"github.com/tiagovaldrich/accounts-api/internal/repository"
 	repoMock "github.com/tiagovaldrich/accounts-api/test/mock/repository"
 	"go.uber.org/mock/gomock"
 )
@@ -72,7 +74,7 @@ func TestCreateAccount(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, documentNumber, createdAccount.Customer.Document)
 			assert.Equal(t, expectedTime, createdAccount.Customer.CreatedAt)
-			assert.Equal(t, &customerAccountID, createdAccount.CustomerAccount.ID)
+			assert.Equal(t, customerAccountID.String(), createdAccount.CustomerAccount.ID.String())
 		})
 	}
 }
@@ -103,11 +105,77 @@ func TestInvalidDocumentNumberOnCreateAccount(t *testing.T) {
 
 			var resultError *cerror.Error
 			if assert.ErrorAs(t, err, &resultError) {
-				assert.Equal(t, 400, resultError.Status)
+				assert.Equal(t, http.StatusBadRequest, resultError.Status)
 				assert.Equal(t, "Invalid document", resultError.Message)
 			} else {
 				t.Errorf("should have received a *cerror.Error type but received %T", err)
 			}
 		})
 	}
+}
+
+func TestSearchCustomerByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	customerRepoMock := repoMock.NewMockCustomerRepository(ctrl)
+	customerAccountRepoMock := repoMock.NewMockCustomerAccountRepository(ctrl)
+	service := accounts.NewService(customerRepoMock, customerAccountRepoMock)
+
+	expectedCustomerAccountID, err := uuid.NewV6()
+	require.Nil(t, err)
+	expectedDocument := "76713659047"
+	expectedTime := time.Date(2026, time.March, 25, 0, 0, 0, 0, time.UTC)
+
+	customerAccountRepoMock.EXPECT().
+		SearchCustomerAccountByID(gomock.Any(), &expectedCustomerAccountID).
+		Times(1).
+		Return(&repository.CustomerAccountByIDResult{
+			ID:        &expectedCustomerAccountID,
+			Document:  expectedDocument,
+			CreatedAt: expectedTime,
+		}, nil)
+
+	t.Run("should return a customer account when provided a valid customer account id", func(t *testing.T) {
+		customerAccount, err := service.SearchCustomerAccountByID(t.Context(), accounts.SearchAccountRequest{
+			CustomerAccountID: &expectedCustomerAccountID,
+		})
+
+		assert.Nil(t, err)
+		assert.Equal(t, expectedCustomerAccountID.String(), customerAccount.CustomerID.String())
+		assert.Equal(t, expectedDocument, customerAccount.Document)
+	})
+}
+
+func TestSearchCustomerByIDNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	customerRepoMock := repoMock.NewMockCustomerRepository(ctrl)
+	customerAccountRepoMock := repoMock.NewMockCustomerAccountRepository(ctrl)
+	service := accounts.NewService(customerRepoMock, customerAccountRepoMock)
+
+	expectedCustomerAccountID, err := uuid.NewV6()
+	require.Nil(t, err)
+
+	customerAccountRepoMock.EXPECT().
+		SearchCustomerAccountByID(gomock.Any(), &expectedCustomerAccountID).
+		Times(1).
+		Return(nil, nil)
+
+	t.Run("should return an error with not found status", func(t *testing.T) {
+		_, err := service.SearchCustomerAccountByID(t.Context(), accounts.SearchAccountRequest{
+			CustomerAccountID: &expectedCustomerAccountID,
+		})
+
+		require.NotNil(t, err)
+
+		var resultError *cerror.Error
+		if assert.ErrorAs(t, err, &resultError) {
+			assert.Equal(t, http.StatusNotFound, resultError.Status)
+			assert.Equal(t, "Customer account not found", resultError.Message)
+		} else {
+			t.Errorf("should have received a *cerror.Error type but received %T", err)
+		}
+	})
 }

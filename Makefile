@@ -12,7 +12,9 @@ install:
 	go mod vendor
 
 ci-tests:
-	gotestsum --format pkgname ./test/integration/...
+	gotestsum --format pkgname ./...
+
+tests: unit integration-test
 
 unit:
 	gotestsum --format pkgname ./internal/...
