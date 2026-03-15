@@ -14,6 +14,9 @@ install:
 ci-tests:
 	gotestsum --format pkgname ./test/integration/...
 
+unit:
+	gotestsum --format pkgname ./internal/...
+
 integration-test:
 	$(load_env) && gotestsum --format pkgname ./test/integration/...
 
@@ -36,3 +39,8 @@ run-docker:
 		-e DB_PASSWORD=postgres \
 		-e DB_NAME=accounts_api \
 		tiagovaldrich/accounts-api
+
+mock:
+	mockgen -source=internal/repository/customer.go -destination test/mock/repository/customer.go
+	mockgen -source=internal/repository/customer_account.go -destination test/mock/repository/customer_account.go
+	mockgen -source=internal/repository/transaction.go -destination test/mock/repository/transaction.go

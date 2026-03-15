@@ -11,9 +11,9 @@ import (
 )
 
 type Servicer interface {
-	CreateAccount(context.Context, createAccountRequest) (CustomerAccountResult, error)
+	CreateAccount(context.Context, CreateAccountRequest) (CustomerAccountResult, error)
 	SearchCustomerAccountByID(
-		ctx context.Context, req searchAccountRequest,
+		ctx context.Context, req SearchAccountRequest,
 	) (SearchCustomerAccountResult, error)
 }
 
@@ -32,7 +32,7 @@ func NewService(
 	}
 }
 
-func (s *service) CreateAccount(ctx context.Context, accountReq createAccountRequest) (CustomerAccountResult, error) {
+func (s *service) CreateAccount(ctx context.Context, accountReq CreateAccountRequest) (CustomerAccountResult, error) {
 	var customerAccountResult CustomerAccountResult
 
 	if !s.isValidDocumentNumber(accountReq.Document) {
@@ -81,7 +81,7 @@ func (s *service) isValidDocumentNumber(documentNumber string) bool {
 }
 
 func (s *service) SearchCustomerAccountByID(
-	ctx context.Context, searchAccountReq searchAccountRequest,
+	ctx context.Context, searchAccountReq SearchAccountRequest,
 ) (SearchCustomerAccountResult, error) {
 	customerAccount, err := s.customerAccountRepository.SearchCustomerAccountByID(ctx, searchAccountReq.CustomerAccountID)
 	if err != nil {

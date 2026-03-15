@@ -25,7 +25,7 @@ func NewHTTPHandler(app *fiber.App, service Servicer) {
 }
 
 func (h *httpHandler) createAccount(c *fiber.Ctx) error {
-	var body createAccountRequest
+	var body CreateAccountRequest
 
 	if err := c.BodyParser(&body); err != nil {
 		return cerror.New(cerror.Params{
@@ -62,7 +62,7 @@ func (h *httpHandler) searchCustomerBankAccountByID(c *fiber.Ctx) error {
 		})
 	}
 
-	customerAccountResult, err := h.service.SearchCustomerAccountByID(c.Context(), searchAccountRequest{
+	customerAccountResult, err := h.service.SearchCustomerAccountByID(c.Context(), SearchAccountRequest{
 		CustomerAccountID: &customerAccountIdParsed,
 	})
 	if err != nil {
