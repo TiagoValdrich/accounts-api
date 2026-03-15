@@ -106,7 +106,7 @@ func createTestDatabaseIfNotExists() testDBConfig {
 			panic(fmt.Sprintf("failed to create test database: %v", err))
 		}
 
-		fmt.Printf("Created test database: %s\n", cfg.dbName)
+		fmt.Printf("Created test database: %s\n", cfg.testDbName)
 	}
 
 	return cfg

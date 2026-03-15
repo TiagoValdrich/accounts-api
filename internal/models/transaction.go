@@ -11,10 +11,10 @@ import (
 type OperationType string
 
 const (
-	NormalPurchase            OperationType = "normal_purchase"
-	PurcharseWithInstallments OperationType = "installment_purchase"
-	Withdrawal                OperationType = "withdrawal"
-	CreditVoucher             OperationType = "credit_voucher"
+	NormalPurchase           OperationType = "normal_purchase"
+	PurchaseWithInstallments OperationType = "installment_purchase"
+	Withdrawal               OperationType = "withdrawal"
+	CreditVoucher            OperationType = "credit_voucher"
 )
 
 type Transaction struct {

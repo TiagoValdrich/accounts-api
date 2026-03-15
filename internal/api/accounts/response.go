@@ -27,7 +27,7 @@ func DomainToAccountCreatedResponse(customerAccountResult CustomerAccountResult)
 
 func DomainToSearchAccountByIDResponse(searchCustomerAccountResult SearchCustomerAccountResult) SearchCustomerAccountByIDResponse {
 	return SearchCustomerAccountByIDResponse{
-		ID:       searchCustomerAccountResult.CustomerID,
+		ID:       searchCustomerAccountResult.CustomerAccountID,
 		Document: searchCustomerAccountResult.Document,
 	}
 }

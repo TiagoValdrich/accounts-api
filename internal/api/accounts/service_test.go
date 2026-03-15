@@ -142,7 +142,7 @@ func TestSearchCustomerByID(t *testing.T) {
 		})
 
 		assert.Nil(t, err)
-		assert.Equal(t, expectedCustomerAccountID.String(), customerAccount.CustomerID.String())
+		assert.Equal(t, expectedCustomerAccountID.String(), customerAccount.CustomerAccountID.String())
 		assert.Equal(t, expectedDocument, customerAccount.Document)
 	})
 }

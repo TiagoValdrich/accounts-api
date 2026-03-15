@@ -18,10 +18,10 @@ func negativeAmount(amount int64) int64 {
 
 func ApplyMoneyDirection(amount int64, operation models.OperationType) (int64, error) {
 	formatterMap := map[models.OperationType]func(amount int64) int64{
-		models.CreditVoucher:             positiveAmount,
-		models.NormalPurchase:            negativeAmount,
-		models.PurcharseWithInstallments: negativeAmount,
-		models.Withdrawal:                negativeAmount,
+		models.CreditVoucher:            positiveAmount,
+		models.NormalPurchase:           negativeAmount,
+		models.PurchaseWithInstallments: negativeAmount,
+		models.Withdrawal:               negativeAmount,
 	}
 
 	moneyFormatter, ok := formatterMap[operation]

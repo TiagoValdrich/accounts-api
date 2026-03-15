@@ -54,7 +54,7 @@ func TestApplyMoneyDirection(t *testing.T) {
 		},
 		{
 			description:   "installment purchase operations should return negative values",
-			operationType: models.PurcharseWithInstallments,
+			operationType: models.PurchaseWithInstallments,
 			inputValue:    int64(10000),
 			expectedValue: int64(-10000),
 		},

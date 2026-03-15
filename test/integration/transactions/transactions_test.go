@@ -58,7 +58,7 @@ func TestCreateTransaction(t *testing.T) {
 
 			resp, _ := testutils.POST(t, testSuite.App, "/transactions", map[string]any{
 				"account_id":     "00000000-0000-0000-0000-000000000000",
-				"operation_type": models.PurcharseWithInstallments,
+				"operation_type": models.PurchaseWithInstallments,
 				"amount":         50.00,
 			})
 

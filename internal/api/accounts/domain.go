@@ -14,15 +14,15 @@ type CustomerAccountResult struct {
 }
 
 type SearchCustomerAccountResult struct {
-	CustomerID *uuid.UUID
-	Document   string
-	CreatedAt  time.Time
+	CustomerAccountID *uuid.UUID
+	Document          string
+	CreatedAt         time.Time
 }
 
 func DatabaseToSearchCustomerAccountResult(dbResult repository.CustomerAccountByIDResult) SearchCustomerAccountResult {
 	return SearchCustomerAccountResult{
-		CustomerID: dbResult.ID,
-		Document:   dbResult.Document,
-		CreatedAt:  dbResult.CreatedAt,
+		CustomerAccountID: dbResult.ID,
+		Document:          dbResult.Document,
+		CreatedAt:         dbResult.CreatedAt,
 	}
 }

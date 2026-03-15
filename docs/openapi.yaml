@@ -178,7 +178,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateTransactionResponse'
         '400':
-          description: Bad request - Invalid payload or insufficient funds
+          description: Bad request - Invalid payload
           content:
             application/json:
               schema:
@@ -194,11 +194,6 @@ paths:
                     field_errors:
                       - field: amount
                         message: amount must be greater than 0
-                insufficientFunds:
-                  summary: Insufficient funds
-                  value:
-                    status: 400
-                    message: Insufficient funds to perform operation
         '404':
           description: Account not found
           content:

@@ -42,7 +42,7 @@ func TestCreateTransaction(t *testing.T) {
 		},
 		{
 			CustomerAccountID: &customerAccountID,
-			OperationType:     models.PurcharseWithInstallments,
+			OperationType:     models.PurchaseWithInstallments,
 			Amount:            50.00,
 			IdempotencyKey:    utils.GetStringPointer("id-3"),
 		},

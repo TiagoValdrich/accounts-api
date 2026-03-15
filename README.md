@@ -122,7 +122,7 @@ make integration-test
 Running all tests:
 
 ```bash
-make test
+make tests
 ```
 
 > 🚨 Just be aware that you need to have the database container running to run the integration tests.
