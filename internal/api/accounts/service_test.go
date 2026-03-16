@@ -12,8 +12,9 @@ import (
 	"github.com/tiagovaldrich/accounts-api/internal/api/accounts"
 	"github.com/tiagovaldrich/accounts-api/internal/models"
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/cerror"
+	"github.com/tiagovaldrich/accounts-api/internal/pkg/utils"
 	"github.com/tiagovaldrich/accounts-api/internal/repository"
-	repoMock "github.com/tiagovaldrich/accounts-api/test/mock/repository"
+	repoMock "github.com/tiagovaldrich/accounts-api/internal/repository/mock"
 	"go.uber.org/mock/gomock"
 )
 
@@ -46,15 +47,16 @@ func TestCreateAccount(t *testing.T) {
 			customerAccountID, err := uuid.NewV6()
 			require.Nil(t, err)
 			expectedTime := time.Date(2026, time.March, 25, 0, 0, 0, 0, time.UTC)
+			sanitizedDocumentNumber := utils.SanitizeDocumentNumber(documentNumber)
 
 			customerRepoMock.EXPECT().
 				CreateCustomer(gomock.Any(), models.Customer{
-					Document: documentNumber,
+					Document: sanitizedDocumentNumber,
 				}).
 				AnyTimes().
 				Return(&models.Customer{
 					ID:        &customerID,
-					Document:  documentNumber,
+					Document:  sanitizedDocumentNumber,
 					CreatedAt: expectedTime,
 				}, nil)
 
@@ -72,7 +74,7 @@ func TestCreateAccount(t *testing.T) {
 			})
 
 			assert.Nil(t, err)
-			assert.Equal(t, documentNumber, createdAccount.Customer.Document)
+			assert.Equal(t, sanitizedDocumentNumber, createdAccount.Customer.Document)
 			assert.Equal(t, expectedTime, createdAccount.Customer.CreatedAt)
 			assert.Equal(t, customerAccountID.String(), createdAccount.CustomerAccount.ID.String())
 		})

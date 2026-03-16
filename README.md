@@ -72,7 +72,7 @@ You will need to have Docker (and Docker Compose) installed and running on your 
 You can easily run the project using Docker Compose, by running:
 
 ```bash
-docker compose up -d
+docker compose up -d --build app
 ```
 
 It will setup the postgres database, the API on the url `http://localhost:8889` and the Swagger UI on the url `http://localhost:8081`.

@@ -13,7 +13,7 @@ import (
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/cerror"
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/utils"
 	"github.com/tiagovaldrich/accounts-api/internal/repository"
-	repoMock "github.com/tiagovaldrich/accounts-api/test/mock/repository"
+	repoMock "github.com/tiagovaldrich/accounts-api/internal/repository/mock"
 	"go.uber.org/mock/gomock"
 )
 

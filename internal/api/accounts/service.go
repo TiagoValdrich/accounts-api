@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/tiagovaldrich/accounts-api/internal/models"
 	"github.com/tiagovaldrich/accounts-api/internal/pkg/cerror"
+	"github.com/tiagovaldrich/accounts-api/internal/pkg/utils"
 	"github.com/tiagovaldrich/accounts-api/internal/repository"
 )
 
@@ -35,7 +36,8 @@ func NewService(
 func (s *service) CreateAccount(ctx context.Context, accountReq CreateAccountRequest) (CustomerAccountResult, error) {
 	var customerAccountResult CustomerAccountResult
 
-	if !s.isValidDocumentNumber(accountReq.Document) {
+	sanitizedDocNumber := utils.SanitizeDocumentNumber(accountReq.Document)
+	if !s.isValidDocumentNumber(sanitizedDocNumber) {
 		return customerAccountResult, cerror.New(cerror.Params{
 			Status:  400,
 			Message: "Invalid document",
@@ -44,7 +46,7 @@ func (s *service) CreateAccount(ctx context.Context, accountReq CreateAccountReq
 
 	err := s.customerRepository.WithTransaction(ctx, func(txCtx context.Context) error {
 		customer, err := s.customerRepository.CreateCustomer(txCtx, models.Customer{
-			Document: accountReq.Document,
+			Document: sanitizedDocNumber,
 		})
 		if err != nil {
 			log.Err(err).Msg("failed to create customer")
