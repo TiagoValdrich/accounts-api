@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 
 func TestCreateTransaction(t *testing.T) {
 	t.Run("POST /transactions", func(t *testing.T) {
-		t.Run("should create a transaction record with positive balance when the operation type is credit_voucher", func(t *testing.T) {
+		t.Run("should create a transaction record with positive amount when the operation type is credit_voucher", func(t *testing.T) {
 			testutils.CleanupTables(t, testSuite)
 
 			accountID := createTestAccount(t, testutils.TestDocument)
@@ -43,6 +43,39 @@ func TestCreateTransaction(t *testing.T) {
 			creditAmount := int64(10000)
 			tx := AssertTransactionExists(t, accountID, models.CreditVoucher, creditAmount)
 			assert.Equal(t, accountID, tx.CustomerAccountID.String())
+		})
+
+		t.Run("should create a transaction record with negative amount for debit operation types", func(t *testing.T) {
+			debitOperations := []models.OperationType{
+				models.NormalPurchase,
+				models.PurchaseWithInstallments,
+				models.Withdrawal,
+			}
+
+			for _, opType := range debitOperations {
+				strOpType := string(opType)
+
+				t.Run("testing operation type: "+strOpType, func(t *testing.T) {
+					testutils.CleanupTables(t, testSuite)
+
+					accountID := createTestAccount(t, testutils.TestDocument)
+
+					resp, body := testutils.POST(t, testSuite.App, "/transactions", map[string]any{
+						"account_id":     accountID,
+						"operation_type": opType,
+						"amount":         59.95,
+					})
+					require.Equal(t, http.StatusOK, resp.StatusCode)
+
+					var response map[string]any
+					testutils.ParseJSON(t, body, &response)
+					assert.NotEmpty(t, response["id"])
+
+					expectedAmount := int64(-5995)
+					tx := AssertTransactionExists(t, accountID, opType, expectedAmount)
+					assert.Equal(t, accountID, tx.CustomerAccountID.String())
+				})
+			}
 		})
 
 		t.Run("should return bad request when the payload is not provided", func(t *testing.T) {
